@@ -15,6 +15,11 @@ const postSchema = new mongoose.Schema(
       type: String, // HTML string from Tiptap
       required: true,
     },
+    type: {
+      type: String,
+      enum: ['news', 'event', 'notice', 'other'],
+      default: 'news',
+    },
     status: {
       type: String,
       enum: ['draft', 'published'],
