@@ -1,4 +1,5 @@
 import Post from '../models/post.js';
+import mongoose from 'mongoose';
 
 export const createPost = async (req, res) => {
   try {
@@ -163,5 +164,65 @@ export const getPostsWithPagination = async (req, res) => {
   } catch (err) {
     console.error('Error in getPostsWithPagination:', err);
     return res.status(500).json({ error: err.message });
+  }
+};
+
+export const deletePost = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) return res.status(400).json({ error: 'Thiếu id' });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'id không hợp lệ' });
+    }
+
+    const deleted = await Post.findByIdAndDelete(id);
+    if (!deleted)
+      return res.status(404).json({ error: 'Không tìm thấy bài viết' });
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('Delete post error:', err);
+    return res.status(500).json({ error: 'Lỗi máy chủ' });
+  }
+};
+
+export const updatePost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: 'Thiếu id' });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'id không hợp lệ' });
+    }
+
+    // Chỉ nhận các field cho phép (tránh update bừa)
+    const { title, content, thumbnailUrl, status, tags } = req.body;
+    const update = {};
+    if (title !== undefined) update.title = title;
+    if (content !== undefined) update.content = content;
+    if (thumbnailUrl !== undefined) update.thumbnailUrl = thumbnailUrl;
+    if (status !== undefined) update.status = status;
+    if (tags !== undefined) update.tags = tags;
+
+    const updated = await Post.findByIdAndUpdate(id, update, {
+      new: true, // trả về document sau khi update
+      runValidators: true, // chạy validate của schema
+    });
+
+    if (!updated)
+      return res.status(404).json({ error: 'Không tìm thấy bài viết' });
+
+    return res.json({ ok: true, post: updated });
+  } catch (err) {
+    console.error('Update post error:', err);
+
+    // Lỗi validate của Mongoose → 400
+    if (err?.name === 'ValidationError') {
+      return res
+        .status(400)
+        .json({ error: 'Dữ liệu không hợp lệ', details: err.errors });
+    }
+
+    return res.status(500).json({ error: 'Lỗi máy chủ' });
   }
 };
