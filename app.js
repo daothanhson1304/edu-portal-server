@@ -4,6 +4,7 @@ import cors from 'cors';
 import postRoutes from './routes/post.js';
 import imageRoute from './routes/image.js';
 import ruleRoutes from './routes/rule.js';
+import authRoutes from './routes/auth.js';
 import attachmentRoutes from './routes/attachment.js';
 import { ENV } from './config/env.js';
 import fs from 'fs';
@@ -23,5 +24,5 @@ app.use('/api/image', imageRoute);
 app.use('/static', express.static(path.resolve(ENV.UPLOAD_DIR)));
 app.use('/api/rules', ruleRoutes);
 app.use('/api/attachments', attachmentRoutes);
-
+app.use('/api/auth', authRoutes);
 export default app;
